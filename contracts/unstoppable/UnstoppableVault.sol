@@ -29,10 +29,11 @@ contract UnstoppableVault is IERC3156FlashLender, ReentrancyGuard, Owned, ERC462
 
     event FeeRecipientUpdated(address indexed newFeeRecipient);
 
-    constructor(ERC20 _token, address _owner, address _feeRecipient)
-        ERC4626(_token, "Oh Damn Valuable Token", "oDVT")
-        Owned(_owner)
-    {
+    constructor(
+        ERC20 _token,
+        address _owner,
+        address _feeRecipient
+    ) ERC4626(_token, "Oh Damn Valuable Token", "oDVT") Owned(_owner) {
         feeRecipient = _feeRecipient;
         emit FeeRecipientUpdated(_feeRecipient);
     }
@@ -41,9 +42,7 @@ contract UnstoppableVault is IERC3156FlashLender, ReentrancyGuard, Owned, ERC462
      * @inheritdoc IERC3156FlashLender
      */
     function maxFlashLoan(address _token) public view returns (uint256) {
-        if (address(asset) != _token)
-            return 0;
-
+        if (address(asset) != _token) return 0;
         return totalAssets();
     }
 
@@ -51,8 +50,7 @@ contract UnstoppableVault is IERC3156FlashLender, ReentrancyGuard, Owned, ERC462
      * @inheritdoc IERC3156FlashLender
      */
     function flashFee(address _token, uint256 _amount) public view returns (uint256 fee) {
-        if (address(asset) != _token)
-            revert UnsupportedCurrency();
+        if (address(asset) != _token) revert UnsupportedCurrency();
 
         if (block.timestamp < end && _amount < maxFlashLoan(_token)) {
             return 0;
@@ -72,7 +70,8 @@ contract UnstoppableVault is IERC3156FlashLender, ReentrancyGuard, Owned, ERC462
      * @inheritdoc ERC4626
      */
     function totalAssets() public view override returns (uint256) {
-        assembly { // better safe than sorry
+        assembly {
+            // better safe than sorry
             if eq(sload(0), 2) {
                 mstore(0x00, 0xed3ba6a6)
                 revert(0x1c, 0x04)
@@ -95,14 +94,20 @@ contract UnstoppableVault is IERC3156FlashLender, ReentrancyGuard, Owned, ERC462
         uint256 balanceBefore = totalAssets();
         if (convertToShares(totalSupply) != balanceBefore) revert InvalidBalance(); // enforce ERC4626 requirement
         uint256 fee = flashFee(_token, amount);
+
         // transfer tokens out + execute callback on receiver
         ERC20(_token).safeTransfer(address(receiver), amount);
+
         // callback must return magic value, otherwise assume it failed
-        if (receiver.onFlashLoan(msg.sender, address(asset), amount, fee, data) != keccak256("IERC3156FlashBorrower.onFlashLoan"))
-            revert CallbackFailed();
+        if (
+            receiver.onFlashLoan(msg.sender, address(asset), amount, fee, data) !=
+            keccak256("IERC3156FlashBorrower.onFlashLoan")
+        ) revert CallbackFailed();
+
         // pull amount + fee from receiver, then pay the fee to the recipient
         ERC20(_token).safeTransferFrom(address(receiver), address(this), amount + fee);
         ERC20(_token).safeTransfer(feeRecipient, fee);
+
         return true;
     }
 
