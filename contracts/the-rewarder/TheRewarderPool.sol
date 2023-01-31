@@ -15,7 +15,6 @@ contract TheRewarderPool {
 
     // Minimum duration of each round of rewards in seconds
     uint256 private constant REWARDS_ROUND_MIN_DURATION = 5 days;
-    
     uint256 public constant REWARDS = 100 ether;
 
     // Token deposited into the pool by users
@@ -40,7 +39,6 @@ contract TheRewarderPool {
         liquidityToken = _token;
         accountingToken = new AccountingToken();
         rewardToken = new RewardToken();
-
         _recordSnapshot();
     }
 
@@ -56,13 +54,7 @@ contract TheRewarderPool {
 
         accountingToken.mint(msg.sender, amount);
         distributeRewards();
-
-        SafeTransferLib.safeTransferFrom(
-            liquidityToken,
-            msg.sender,
-            address(this),
-            amount
-        );
+        SafeTransferLib.safeTransferFrom(liquidityToken, msg.sender, address(this), amount);
     }
 
     function withdraw(uint256 amount) external {
@@ -96,10 +88,8 @@ contract TheRewarderPool {
     }
 
     function _hasRetrievedReward(address account) private view returns (bool) {
-        return (
-            lastRewardTimestamps[account] >= lastRecordedSnapshotTimestamp
-                && lastRewardTimestamps[account] <= lastRecordedSnapshotTimestamp + REWARDS_ROUND_MIN_DURATION
-        );
+        return (lastRewardTimestamps[account] >= lastRecordedSnapshotTimestamp &&
+            lastRewardTimestamps[account] <= lastRecordedSnapshotTimestamp + REWARDS_ROUND_MIN_DURATION);
     }
 
     function isNewRewardsRound() public view returns (bool) {

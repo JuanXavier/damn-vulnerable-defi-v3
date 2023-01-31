@@ -6,7 +6,13 @@ import "@uniswap/v2-periphery/contracts/libraries/SafeMath.sol";
 
 interface IERC20 {
     function transfer(address to, uint256 amount) external returns (bool);
-    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) external returns (bool);
+
     function balanceOf(address account) external returns (uint256);
 }
 
@@ -26,9 +32,12 @@ contract PuppetV2Pool {
 
     event Borrowed(address indexed borrower, uint256 depositRequired, uint256 borrowAmount, uint256 timestamp);
 
-    constructor(address wethAddress, address tokenAddress, address uniswapPairAddress, address uniswapFactoryAddress)
-        public
-    {
+    constructor(
+        address wethAddress,
+        address tokenAddress,
+        address uniswapPairAddress,
+        address uniswapFactoryAddress
+    ) public {
         _weth = IERC20(wethAddress);
         _token = IERC20(tokenAddress);
         _uniswapPair = uniswapPairAddress;
@@ -62,8 +71,11 @@ contract PuppetV2Pool {
 
     // Fetch the price from Uniswap v2 using the official libraries
     function _getOracleQuote(uint256 amount) private view returns (uint256) {
-        (uint256 reservesWETH, uint256 reservesToken) =
-            UniswapV2Library.getReserves(_uniswapFactory, address(_weth), address(_token));
-        return UniswapV2Library.quote(amount.mul(10 ** 18), reservesToken, reservesWETH);
+        (uint256 reservesWETH, uint256 reservesToken) = UniswapV2Library.getReserves(
+            _uniswapFactory,
+            address(_weth),
+            address(_token)
+        );
+        return UniswapV2Library.quote(amount.mul(10**18), reservesToken, reservesWETH);
     }
 }

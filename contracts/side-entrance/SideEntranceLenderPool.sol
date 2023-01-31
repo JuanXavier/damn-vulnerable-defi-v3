@@ -14,9 +14,7 @@ interface IFlashLoanEtherReceiver {
  */
 contract SideEntranceLenderPool {
     mapping(address => uint256) private balances;
-
     error RepayFailed();
-
     event Deposit(address indexed who, uint256 amount);
     event Withdraw(address indexed who, uint256 amount);
 
@@ -29,19 +27,14 @@ contract SideEntranceLenderPool {
 
     function withdraw() external {
         uint256 amount = balances[msg.sender];
-        
         delete balances[msg.sender];
         emit Withdraw(msg.sender, amount);
-
         SafeTransferLib.safeTransferETH(msg.sender, amount);
     }
 
     function flashLoan(uint256 amount) external {
         uint256 balanceBefore = address(this).balance;
-
-        IFlashLoanEtherReceiver(msg.sender).execute{value: amount}();
-
-        if (address(this).balance < balanceBefore)
-            revert RepayFailed();
+        IFlashLoanEtherReceiver(msg.sender).execute{ value: amount }();
+        if (address(this).balance < balanceBefore) revert RepayFailed();
     }
 }
