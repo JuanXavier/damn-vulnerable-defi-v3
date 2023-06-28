@@ -21,9 +21,7 @@ contract SelfAuthorizedVault is AuthorizedExecutor {
     error WithdrawalWaitingPeriodNotEnded();
 
     modifier onlyThis() {
-        if (msg.sender != address(this)) {
-            revert CallerNotAllowed();
-        }
+        if (msg.sender != address(this)) revert CallerNotAllowed();
         _;
     }
 
@@ -34,16 +32,9 @@ contract SelfAuthorizedVault is AuthorizedExecutor {
      * @param amount amount of tokens to be transferred
      */
     function withdraw(address token, address recipient, uint256 amount) external onlyThis {
-        if (amount > WITHDRAWAL_LIMIT) {
-            revert InvalidWithdrawalAmount();
-        }
-
-        if (block.timestamp <= _lastWithdrawalTimestamp + WAITING_PERIOD) {
-            revert WithdrawalWaitingPeriodNotEnded();
-        }
-
+        if (amount > WITHDRAWAL_LIMIT) revert InvalidWithdrawalAmount();
+        if (block.timestamp <= _lastWithdrawalTimestamp + WAITING_PERIOD) revert WithdrawalWaitingPeriodNotEnded();
         _lastWithdrawalTimestamp = block.timestamp;
-
         SafeTransferLib.safeTransfer(token, recipient, amount);
     }
 
@@ -56,8 +47,6 @@ contract SelfAuthorizedVault is AuthorizedExecutor {
     }
 
     function _beforeFunctionCall(address target, bytes memory) internal view override {
-        if (target != address(this)) {
-            revert TargetNotAllowed();
-        }
+        if (target != address(this)) revert TargetNotAllowed();
     }
 }
