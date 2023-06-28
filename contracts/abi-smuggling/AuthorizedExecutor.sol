@@ -10,15 +10,11 @@ import "@openzeppelin/contracts/utils/Address.sol";
  */
 abstract contract AuthorizedExecutor is ReentrancyGuard {
     using Address for address;
-
     bool public initialized;
-
     // action identifier => allowed
     mapping(bytes32 => bool) public permissions;
-
     error NotAllowed();
     error AlreadyInitialized();
-
     event Initialized(address who, bytes32[] ids);
 
     /**
@@ -26,18 +22,15 @@ abstract contract AuthorizedExecutor is ReentrancyGuard {
      * @param ids array of action identifiers
      */
     function setPermissions(bytes32[] memory ids) external {
-        if (initialized) {
-            revert AlreadyInitialized();
-        }
+        if (initialized) revert AlreadyInitialized();
 
-        for (uint256 i = 0; i < ids.length;) {
+        for (uint256 i = 0; i < ids.length; ) {
             unchecked {
                 permissions[ids[i]] = true;
                 ++i;
             }
         }
         initialized = true;
-
         emit Initialized(msg.sender, ids);
     }
 
@@ -50,16 +43,13 @@ abstract contract AuthorizedExecutor is ReentrancyGuard {
         // Read the 4-bytes selector at the beginning of `actionData`
         bytes4 selector;
         uint256 calldataOffset = 4 + 32 * 3; // calldata position where `actionData` begins
+
         assembly {
             selector := calldataload(calldataOffset)
         }
 
-        if (!permissions[getActionId(selector, msg.sender, target)]) {
-            revert NotAllowed();
-        }
-
+        if (!permissions[getActionId(selector, msg.sender, target)]) revert NotAllowed();
         _beforeFunctionCall(target, actionData);
-
         return target.functionCall(actionData);
     }
 
