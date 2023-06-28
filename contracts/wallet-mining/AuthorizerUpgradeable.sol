@@ -11,14 +11,13 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
  */
 contract AuthorizerUpgradeable is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     mapping(address => mapping(address => uint256)) private wards;
-
     event Rely(address indexed usr, address aim);
 
     function init(address[] memory _wards, address[] memory _aims) external initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
 
-        for (uint256 i = 0; i < _wards.length;) {
+        for (uint256 i = 0; i < _wards.length; ) {
             _rely(_wards[i], _aims[i]);
             unchecked {
                 i++;
